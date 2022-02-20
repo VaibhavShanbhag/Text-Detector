@@ -10,7 +10,14 @@ import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.gms.tasks.Task
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.Text
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.TextRecognizer
+import com.google.mlkit.vision.text.TextRecognizerOptions
 import kotlinx.android.synthetic.main.activity_scanner.*
+import java.lang.StringBuilder
 
 class ScannerActivity : AppCompatActivity() {
 
@@ -86,6 +93,28 @@ class ScannerActivity : AppCompatActivity() {
     }
 
     private fun detectText() {
+        val image: InputImage = InputImage.fromBitmap(imageBitmap,0)
+        val recongniser: TextRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        val result: Task<Text> = recongniser.process(image).addOnSuccessListener{
+            val result: StringBuilder? = null
+            for (block in it.textBlocks){
+                val blockText = block.text
+                val blockCornerPoints = block.cornerPoints
+                val blockFrame = block.boundingBox
+                for (line in block.lines){
+                    val lineText = line.text
+                    val lineCornerPoints = line.cornerPoints
+                    val lineFrame = line.boundingBox
+                    for (element in line.elements) {
+                        val elementText = element.text
+                        result?.append(elementText)
+                    }
+                    resulttext.text = blockText
+                }
+            }
+        }.addOnFailureListener {
+            Toast.makeText(this,"Failed to detect text from image ${it.localizedMessage}",Toast.LENGTH_SHORT).show()
+        }
 
     }
 
